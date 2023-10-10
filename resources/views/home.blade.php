@@ -44,7 +44,7 @@
                         @foreach ($uploads as $upload)
                             <tr>
                                 <td class="p-2">
-                                    {{ $upload->created_at->format('Y-m-d H:i:s') }}
+                                    {{ $upload->uploaded_at->format('Y-m-d H:i:s') }}
                                 </td>
                                 <td class="p-2">
                                     <a href="{{ '/storage/' . $upload->path }}">{{ $upload->path }}</a>

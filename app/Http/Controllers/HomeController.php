@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\UpsertProductJob;
 use App\Models\Upload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
 {
     public function index()
     {
         $uploads = Upload::all();
+
         return view('home', [
-            'uploads' => $uploads
+            'uploads' => $uploads,
         ]);
     }
 
@@ -19,7 +22,7 @@ class HomeController extends Controller
     {
         $file = $request->file('file');
 
-        if (!$file) {
+        if (! $file) {
             return redirect()->back()->with('error', 'File not found.');
         }
 
@@ -28,22 +31,32 @@ class HomeController extends Controller
         $existingFile = Upload::where('hash', $hash)->first();
 
         if ($existingFile) {
-            return redirect()->back()->with('error', 'File already uploaded.');
+            Storage::disk('public')->delete($existingFile->path);
+
+            $existingFile->update([
+                'status' => Upload::STATUS_PENDING,
+                'hash' => $hash,
+                'path' => $file->store('csv', 'public'),
+                'uploaded_at' => now(),
+            ]);
+
+            dispatch(new UpsertProductJob($existingFile));
+
+            return redirect()->back()->with('success', 'File updated.');
         }
 
         try {
-            $path = $file->store('csv', 'public');
-
-            Upload::create([
-                'path' => $path,
+            $upload = Upload::create([
+                'path' => $file->store('csv', 'public'),
                 'hash' => $hash,
-                'status' => Upload::STATUS_PENDING
+                'status' => Upload::STATUS_PENDING,
+                'uploaded_at' => now(),
             ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'File upload failed.');
         }
 
-        //dispatch job
+        dispatch(new UpsertProductJob($upload));
 
         return redirect()->back()->with('success', 'File uploaded successfully.');
     }

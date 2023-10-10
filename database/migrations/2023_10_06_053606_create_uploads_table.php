@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('path');
             $table->string('hash');
             $table->string('status')->default('pending');
+            $table->timestamp('uploaded_at');
             $table->timestamps();
         });
     }

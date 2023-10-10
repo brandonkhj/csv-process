@@ -12,7 +12,14 @@ class Upload extends Model
     protected $guarded = [];
 
     const STATUS_PENDING = 'pending';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_COMPLETED = 'completed';
+
     const STATUS_FAILED = 'failed';
+
+    protected $casts = [
+        'uploaded_at' => 'datetime',
+    ];
 }
