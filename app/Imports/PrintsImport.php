@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Concerns\WithUpserts;
 use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Events\ImportFailed;
 
-class PrintsImport implements ToModel, WithUpserts, WithBatchInserts, WithHeadingRow, WithChunkReading, ShouldQueue, WithEvents
+class PrintsImport implements ShouldQueue, ToModel, WithBatchInserts, WithChunkReading, WithEvents, WithHeadingRow, WithUpserts
 {
     public $upload;
 
@@ -57,16 +57,16 @@ class PrintsImport implements ToModel, WithUpserts, WithBatchInserts, WithHeadin
         $upload = $this->upload;
 
         return [
-            ImportFailed::class => function() use ($upload) {
+            ImportFailed::class => function () use ($upload) {
                 $upload->update([
-                    'status' => Upload::STATUS_FAILED
+                    'status' => Upload::STATUS_FAILED,
                 ]);
             },
-            AfterImport::class => function() use ($upload) {
+            AfterImport::class => function () use ($upload) {
                 $upload->update([
-                    'status' => Upload::STATUS_COMPLETED
+                    'status' => Upload::STATUS_COMPLETED,
                 ]);
-            }
+            },
         ];
     }
 }
